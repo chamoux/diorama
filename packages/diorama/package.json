@@ -1,26 +1,50 @@
 {
   "name": "@chamoux/diorama",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Persistent WebGL scenes and scroll choreography for Inertia + Vue apps.",
   "type": "module",
   "sideEffects": false,
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
     "./package.json": "./package.json"
   },
-  "files": ["dist"],
-  "engines": { "node": ">=20.19" },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20.19"
+  },
   "keywords": [
-    "inertia", "inertiajs", "vue", "vue3", "laravel",
-    "three", "threejs", "three.js", "webgl", "gsap", "scrolltrigger",
-    "persistent-canvas", "persistent-layout", "scene", "scroll", "scroll-animation",
-    "spa", "3d"
+    "inertia",
+    "inertiajs",
+    "vue",
+    "vue3",
+    "laravel",
+    "three",
+    "threejs",
+    "three.js",
+    "webgl",
+    "gsap",
+    "scrolltrigger",
+    "persistent-canvas",
+    "persistent-layout",
+    "scene",
+    "scroll",
+    "scroll-animation",
+    "spa",
+    "3d"
   ],
   "license": "MIT",
   "author": "chamoux",
-  "repository": { "type": "git", "url": "git+https://github.com/chamoux/diorama.git" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chamoux/diorama.git"
+  },
   "scripts": {
     "build": "vite build",
     "test": "vitest run",
@@ -36,7 +60,9 @@
     "@inertiajs/vue3": "^1 || ^2 || ^3"
   },
   "peerDependenciesMeta": {
-    "@inertiajs/vue3": { "optional": true }
+    "@inertiajs/vue3": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7",
@@ -54,5 +80,7 @@
     "vue": "^3.5",
     "vue-tsc": "^2"
   },
-  "publishConfig": { "access": "public" }
+  "publishConfig": {
+    "access": "public"
+  }
 }
