@@ -4,6 +4,10 @@ Persistent WebGL scenes for Inertia + Vue. One Three.js canvas that lives across
 Inertia page visits instead of being torn down on every navigation, with a
 declarative per-page scene lifecycle and a default crossfade between scenes.
 
+<p align="center">
+  <img src="assets/demo.gif" alt="Diorama demo: one persistent Three.js canvas crossfading between per-page scenes across Inertia navigations" width="800">
+</p>
+
 **SSR-safe** — the plugin builds only Three.js objects on the server; the WebGL
 renderer and all DOM/router wiring are deferred to the client, so it renders and
 hydrates cleanly under Inertia SSR.
