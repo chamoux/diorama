@@ -1,7 +1,7 @@
 {
   "name": "@chamoux/diorama",
   "version": "0.0.2",
-  "description": "Persistent WebGL scenes and scroll choreography for Inertia + Vue apps.",
+  "description": "Persistent WebGL scenes for Inertia + Vue: one Three.js canvas that survives navigation, with per-page scenes and crossfades.",
   "type": "module",
   "sideEffects": false,
   "module": "./dist/index.js",

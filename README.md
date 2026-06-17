@@ -28,6 +28,12 @@ This is a pnpm monorepo:
 - **[`playground`](playground)** — a Laravel 12 + Inertia v3 + Vue 3 sandbox that demonstrates and validates the library, including server-side rendering.
 - **`e2e`** — Playwright end-to-end tests (persistence, disposal, hydration).
 
+## Status
+
+Early days (`0.0.x`) — the API may still change. **Shipping now:** persistent canvas
+across Inertia navigation, per-page `useScene` lifecycle, automatic crossfade, SSR.
+**Planned:** scroll choreography, a TresJS adapter, lazy asset helpers.
+
 ## Development
 
 ```bash

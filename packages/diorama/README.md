@@ -24,9 +24,10 @@ Two problems show up the moment you put serious 3D into a Laravel/Inertia (or an
 2. **Scroll choreography is hand-rolled every time.** Binding a GSAP timeline to scroll
    and driving camera/object/material state by hand is the same glue on every project.
 
-Diorama solves both by riding Inertia's **persistent layouts**: it mounts one Three.js
-renderer once, keeps the WebGL context alive across navigation, and gives you a
-declarative per-page scene lifecycle with crossfades.
+Diorama rides Inertia's **persistent layouts** to solve the first one **today**: it
+mounts one Three.js renderer once, keeps the WebGL context alive across navigation, and
+gives you a declarative per-page scene lifecycle with automatic crossfades between scenes.
+Scroll choreography (problem 2) is the next milestone — see [Status & roadmap](#status--roadmap).
 
 ## Install
 
@@ -104,6 +105,16 @@ On navigation, Diorama runs the outgoing scene's `leave`, the incoming scene's
 | `createDiorama(options)` | Vue plugin; creates the shared renderer/scene/camera |
 | `DioramaCanvas` | the single persistent `<canvas>`; place it in a persistent layout |
 | `useScene(name, hooks)` | register `enter`/`leave` for the current page (`name` is a display label; the scene is keyed by the Inertia page component) |
+
+## Status & roadmap
+
+Early days (`0.0.x`) — the API may still change.
+
+**Shipping now:** persistent canvas across Inertia navigation · per-page `useScene`
+lifecycle · automatic crossfade between scenes · SSR-safe render + hydrate.
+
+**Planned:** `useScrollChoreography` (bind a scrubbed GSAP timeline to scene state) ·
+a TresJS adapter for declarative scene content · lazy asset helpers.
 
 ## License
 
