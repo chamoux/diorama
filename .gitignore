@@ -1,0 +1,24 @@
+node_modules/
+dist/
+*.tgz
+# Laravel playground
+playground/vendor/
+playground/node_modules/
+playground/public/build/
+playground/.env
+playground/storage/*.key
+*.sqlite
+.DS_Store
+playground/bootstrap/ssr/
+playground/public/hot
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# Repo-internal (kept local, not pushed)
+/.claude/
+/docs/
+/README_1.md

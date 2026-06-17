@@ -1,0 +1,15 @@
+{
+  "name": "diorama-monorepo",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.27.0",
+  "scripts": {
+    "build": "pnpm --filter @chamoux/diorama build",
+    "test": "pnpm --filter @chamoux/diorama test",
+    "test:e2e": "pnpm --filter @chamoux/diorama build && pnpm --filter playground build && playwright test",
+    "dev:playground": "pnpm --filter playground dev"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.50.0"
+  }
+}

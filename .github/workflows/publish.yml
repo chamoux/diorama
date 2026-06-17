@@ -1,0 +1,27 @@
+name: Publish Package
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  id-token: write   # OIDC trusted publishing + automatic provenance
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm install -g npm@latest   # ensure npm >= 11.5.1 for OIDC trusted publishing
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @chamoux/diorama build
+      - run: pnpm --filter @chamoux/diorama test
+      - run: npm publish   # OIDC auth + automatic provenance; access from publishConfig
+        working-directory: packages/diorama

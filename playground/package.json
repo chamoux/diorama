@@ -1,0 +1,24 @@
+{
+  "name": "playground",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && vite build --ssr",
+    "ssr": "node bootstrap/ssr/ssr.js"
+  },
+  "dependencies": {
+    "@chamoux/diorama": "workspace:*",
+    "@inertiajs/vue3": "^3",
+    "@vue/server-renderer": "^3.5.38",
+    "gsap": "^3.13",
+    "three": "^0.169",
+    "vue": "^3.5"
+  },
+  "devDependencies": {
+    "@types/three": "^0.169",
+    "@vitejs/plugin-vue": "^5",
+    "laravel-vite-plugin": "^1",
+    "vite": "^7"
+  }
+}
