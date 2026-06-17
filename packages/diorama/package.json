@@ -13,8 +13,10 @@
   "files": ["dist"],
   "engines": { "node": ">=20.19" },
   "keywords": [
-    "inertia", "inertiajs", "vue", "three", "threejs",
-    "webgl", "gsap", "scene", "persistent-layout", "scroll"
+    "inertia", "inertiajs", "vue", "vue3", "laravel",
+    "three", "threejs", "three.js", "webgl", "gsap", "scrolltrigger",
+    "persistent-canvas", "persistent-layout", "scene", "scroll", "scroll-animation",
+    "spa", "3d"
   ],
   "license": "MIT",
   "author": "chamoux",

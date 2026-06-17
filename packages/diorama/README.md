@@ -8,6 +8,22 @@ declarative per-page scene lifecycle and a default crossfade between scenes.
 renderer and all DOM/router wiring are deferred to the client (`onMounted`), so it
 renders and hydrates cleanly under Inertia SSR.
 
+## Why
+
+Two problems show up the moment you put serious 3D into a Laravel/Inertia (or any Vue SPA) app:
+
+1. **Inertia remounts your canvas on every navigation.** Inertia swaps the page
+   component on each visit, so a `<canvas>` that lives inside a page is unmounted and
+   recreated — you lose the WebGL context, loaded geometry, and all continuity. What you
+   want is one canvas that *persists* across page visits and morphs from one route's
+   scene to the next.
+2. **Scroll choreography is hand-rolled every time.** Binding a GSAP timeline to scroll
+   and driving camera/object/material state by hand is the same glue on every project.
+
+Diorama solves both by riding Inertia's **persistent layouts**: it mounts one Three.js
+renderer once, keeps the WebGL context alive across navigation, and gives you a
+declarative per-page scene lifecycle with crossfades.
+
 ## Install
 
 ```bash
