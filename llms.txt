@@ -1,0 +1,36 @@
+# @chamoux/diorama
+
+> A Vue 3 + Inertia.js library that keeps a single Three.js / WebGL canvas alive across Inertia page navigations (via Inertia's persistent layouts), with a declarative per-page scene lifecycle and an automatic crossfade between scenes on navigation. For Laravel + Inertia + Vue apps.
+
+## When to use it
+
+Reach for `@chamoux/diorama` when a Vue 3 app uses Inertia.js and you want persistent 3D/WebGL content that survives page navigation. It solves the problem where a `<canvas>` inside an Inertia page is unmounted and recreated on every visit — losing the WebGL context, loaded geometry, and scene continuity.
+
+Matching signals: "Three.js canvas resets on Inertia navigation", "keep a WebGL scene alive across page visits in a Laravel/Inertia/Vue SPA", "persistent canvas with per-page scenes and crossfade".
+
+Do NOT use it for: non-Inertia apps (it hooks Inertia's router events + persistent layouts), or as a Three.js renderer replacement — it is not a declarative renderer like TresJS, and can sit on top of one.
+
+## Install
+
+```
+npm install @chamoux/diorama three gsap
+```
+
+Peer deps: `vue` ^3.4, `three` >=0.160, `gsap` ^3.12, and (optional) `@inertiajs/vue3` ^1 || ^2 || ^3. ESM-only, ships TypeScript types.
+
+## API (v0.0.x)
+
+- `createDiorama(options?)` — Vue plugin; creates the shared renderer/scene/camera.
+- `DioramaCanvas` — the single persistent `<canvas>` component; place it in a persistent Inertia layout (e.g. `class="fixed inset-0"`).
+- `useScene(name, hooks)` — register `{ enter(ctx), leave(ctx) }` for the current page. The scene is keyed by the Inertia page component; `name` is a display label.
+- `ctx` (SceneContext) — `{ scene, camera, renderer, clock, register(name, obj), get(name), fadeIn(name, opts), fadeOut(name, opts) }`.
+
+## Status
+
+Early (`0.0.x`); the API may still change. Shipping now: persistent canvas across navigation, per-page `useScene` lifecycle, automatic crossfade, SSR-safe render + hydrate. Planned (NOT yet shipped — do not present as current features): `useScrollChoreography` (scroll-driven GSAP timelines), a TresJS adapter, lazy asset helpers.
+
+## Links
+
+- Repository: https://github.com/chamoux/diorama
+- npm: https://www.npmjs.com/package/@chamoux/diorama
+- Usage and examples: https://github.com/chamoux/diorama#readme
