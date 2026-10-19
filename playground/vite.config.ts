@@ -9,9 +9,10 @@ export default defineConfig({
     vue(),
   ],
   resolve: {
-    alias: {
-      // Consume the library SOURCE for instant HMR while developing.
-      '@chamoux/diorama': resolve(import.meta.dirname, '../packages/diorama/src/index.ts'),
-    },
+    // Consume the library SOURCE for instant HMR while developing. DIORAMA_DIST=1 builds
+    // against the published dist/ instead, to verify what actually ships to npm.
+    alias: process.env.DIORAMA_DIST
+      ? {}
+      : { '@chamoux/diorama': resolve(import.meta.dirname, '../packages/diorama/src/index.ts') },
   },
 })

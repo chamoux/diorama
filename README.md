@@ -30,9 +30,10 @@ This is a pnpm monorepo:
 
 ## Status
 
-Early days (`0.0.x`) — the API may still change. **Shipping now:** persistent canvas
-across Inertia navigation, per-page `useScene` lifecycle, automatic crossfade, SSR.
-**Planned:** scroll choreography, a TresJS adapter, lazy asset helpers.
+Early days (`0.x`) — the API may still change. **Shipping now:** persistent canvas
+across Inertia navigation, per-page `useScene` lifecycle, automatic crossfade, SSR,
+scroll choreography (`useScrollChoreography`), and lazy, cached asset loading.
+**Planned:** a TresJS adapter.
 
 ## Development
 
@@ -42,6 +43,7 @@ pnpm install
 pnpm --filter @chamoux/diorama test     # unit tests
 pnpm --filter @chamoux/diorama build    # build the library
 pnpm test:e2e                           # end-to-end tests
+# E2E_PORT=8411 if port 8000 is taken; E2E_CHANNEL=chrome to use installed Chrome
 
 # run the demo (two terminals):
 pnpm dev:playground                     # Vite dev server

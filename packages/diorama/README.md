@@ -24,10 +24,11 @@ Two problems show up the moment you put serious 3D into a Laravel/Inertia (or an
 2. **Scroll choreography is hand-rolled every time.** Binding a GSAP timeline to scroll
    and driving camera/object/material state by hand is the same glue on every project.
 
-Diorama rides Inertia's **persistent layouts** to solve the first one **today**: it
-mounts one Three.js renderer once, keeps the WebGL context alive across navigation, and
-gives you a declarative per-page scene lifecycle with automatic crossfades between scenes.
-Scroll choreography (problem 2) is the next milestone — see [Status & roadmap](#status--roadmap).
+Diorama rides Inertia's **persistent layouts** to solve the first one: it mounts one
+Three.js renderer once, keeps the WebGL context alive across navigation, and gives you a
+declarative per-page scene lifecycle with automatic crossfades between scenes. For the
+second, `useScrollChoreography` binds a scrubbed GSAP timeline to each page's scene, and
+`ctx.load` lazy-loads models and textures into it.
 
 ## Install
 
@@ -98,6 +99,65 @@ useScene('home', {
 On navigation, Diorama runs the outgoing scene's `leave`, the incoming scene's
 `enter`, and crossfades between them — the canvas never remounts.
 
+## Scroll choreography
+
+Bind a scrubbed GSAP timeline to the page's scene. The builder runs each time the scene
+enters (after `enter`, so registered objects are there); scrolling then drives the
+timeline's progress, and scrolling back rewinds it. The timeline and its ScrollTrigger
+are killed when the page unmounts.
+
+```vue
+<script setup>
+import { useScene, useScrollChoreography } from '@chamoux/diorama'
+
+useScene('home', {
+  enter(ctx) { /* ctx.register('box', ...) */ },
+})
+
+useScrollChoreography((tl, ctx) => {
+  tl.to(ctx.get('box').rotation, { y: Math.PI * 2, ease: 'none' })
+    .to(ctx.camera.position, { z: 3, ease: 'none' }, 0)
+})
+</script>
+```
+
+By default the whole page's scroll range drives the timeline. Options: `trigger` (an
+element, template ref, or selector), `start` (default `'top top'`), `end` (default
+`'bottom bottom'`), and `scrub` (`true`, or seconds of smoothing). ScrollTrigger ships
+with `gsap` and is registered for you. Leave material opacity alone in the timeline:
+Diorama uses it for the crossfade.
+
+## Lazy assets
+
+`ctx.load(Loader, url)` loads a model or texture when the scene enters, caches it for
+the session, and only resolves while that scene is still active, so a slow download
+never lands in a page you already left. Any three.js loader works (`TextureLoader`,
+`GLTFLoader`, a configured loader instance, or anything with `loadAsync(url)`).
+
+```ts
+import { TextureLoader } from 'three'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+
+useScene('work', {
+  enter(ctx) {
+    ctx.load(GLTFLoader, '/models/robot.glb').then((gltf) => {
+      ctx.register('robot', gltf.scene.clone()) // clone: the cached original is shared
+      ctx.fadeIn('robot')
+    })
+  },
+})
+```
+
+Warm the cache before the visit, for example when a link is hovered:
+
+```vue
+<Link href="/work" @mouseenter="preloadAsset(GLTFLoader, '/models/robot.glb')">Work</Link>
+```
+
+`loadAsset(Loader, url)` is the same cached load outside a scene, and
+`clearAssetCache(url?)` drops one URL or everything. GPU memory is still freed when a
+scene leaves; revisiting re-uploads from the cache without another download.
+
 ## API
 
 | Export | Purpose |
@@ -105,16 +165,20 @@ On navigation, Diorama runs the outgoing scene's `leave`, the incoming scene's
 | `createDiorama(options)` | Vue plugin; creates the shared renderer/scene/camera |
 | `DioramaCanvas` | the single persistent `<canvas>`; place it in a persistent layout |
 | `useScene(name, hooks)` | register `enter`/`leave` for the current page (`name` is a display label; the scene is keyed by the Inertia page component) |
+| `useScrollChoreography(build, options?)` | bind a scrubbed GSAP timeline to the current page's scene |
+| `ctx.load(loader, url)` | lazy, cached asset load scoped to the scene (resolves only while it is active) |
+| `loadAsset(loader, url)` / `preloadAsset(loader, url)` | cached load / fire-and-forget cache warm-up |
+| `clearAssetCache(url?)` | drop one URL, or the whole asset cache |
 
 ## Status & roadmap
 
 Early days (`0.0.x`) — the API may still change.
 
 **Shipping now:** persistent canvas across Inertia navigation · per-page `useScene`
-lifecycle · automatic crossfade between scenes · SSR-safe render + hydrate.
+lifecycle · automatic crossfade between scenes · SSR-safe render + hydrate ·
+`useScrollChoreography` · lazy, cached asset loading.
 
-**Planned:** `useScrollChoreography` (bind a scrubbed GSAP timeline to scene state) ·
-a TresJS adapter for declarative scene content · lazy asset helpers.
+**Planned:** a TresJS adapter for declarative scene content.
 
 ## License
 

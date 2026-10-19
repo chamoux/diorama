@@ -16,4 +16,5 @@ onMounted(() => { (window as unknown as { __diorama: unknown }).__diorama = engi
 .diorama-canvas { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
 .page { position: relative; z-index: 10; padding: 2rem; font-family: system-ui, sans-serif; }
 .page nav a { margin-right: 1rem; }
+.scroll-section { min-height: 90vh; display: flex; align-items: center; }
 </style>

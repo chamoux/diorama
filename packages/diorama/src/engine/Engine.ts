@@ -7,6 +7,7 @@ import { SceneRegistry } from './SceneRegistry'
 import { TransitionController, type TweenFn } from './TransitionController'
 import { createLoop, type Loop } from './loop'
 import { disposeObject, setGroupOpacity } from './dispose'
+import { loadAsset } from '../assets/assets'
 
 export interface EngineDeps {
   /** Test-only seam: inject a synchronous tween to make transitions deterministic. */
@@ -25,6 +26,7 @@ export class Engine {
   private readonly transitions: TransitionController
   private loop: Loop | null = null
   private active: SceneInstance | null = null
+  private readonly enterListeners = new Map<string, Set<(ctx: SceneContext) => void>>()
 
   constructor(options: DioramaOptions = {}, deps: EngineDeps = {}) {
     this.options = options
@@ -89,11 +91,34 @@ export class Engine {
     const group = markRaw(new Group())
     this.scene.add(group)
     const instance: SceneInstance = { component, name: reg.name, group, objects: new Map() }
-    reg.hooks.enter?.(this.buildContext(instance))
+    const ctx = this.buildContext(instance)
+    reg.hooks.enter?.(ctx)
+    this.enterListeners.get(component)?.forEach((listener) => listener(ctx))
     setGroupOpacity(group, 0)
     const prev = this.active
     this.active = instance
     this.transitions.crossfade(prev, instance)
+  }
+
+  /**
+   * Run `listener` with the scene context each time `component`'s scene enters, after
+   * its own `enter` hook. Fires immediately if that scene is already active.
+   * Returns an unsubscribe function.
+   */
+  onEnter(component: string, listener: (ctx: SceneContext) => void): () => void {
+    let listeners = this.enterListeners.get(component)
+    if (!listeners) {
+      listeners = new Set()
+      this.enterListeners.set(component, listeners)
+    }
+    listeners.add(listener)
+    if (this.active?.component === component) listener(this.buildContext(this.active))
+    return () => {
+      listeners.delete(listener)
+      if (listeners.size === 0 && this.enterListeners.get(component) === listeners) {
+        this.enterListeners.delete(component)
+      }
+    }
   }
 
   leave(component: string): void {
@@ -119,6 +144,8 @@ export class Engine {
     const defaultDuration = this.options.transition?.duration ?? 0.6
     const tweenOpacity = (obj: Object3D | undefined, to: number, duration?: number) => {
       const proxy = { v: to === 1 ? 0 : 1 }
+      // Apply the start value now so a freshly registered object can't flash for a frame.
+      if (obj) setGroupOpacity(obj, proxy.v)
       return gsap.to(proxy, {
         v: to,
         duration: duration ?? defaultDuration,
@@ -140,6 +167,14 @@ export class Engine {
       get: (name) => instance.objects.get(name) as never,
       fadeIn: (name, opts) => tweenOpacity(instance.objects.get(name), 1, opts?.duration),
       fadeOut: (name, opts) => tweenOpacity(instance.objects.get(name), 0, opts?.duration),
+      load: (loader, url) =>
+        new Promise((resolve, reject) => {
+          // Settle only while this scene is still the active one; otherwise stay pending.
+          loadAsset(loader, url).then(
+            (asset) => { if (this.active === instance) resolve(asset) },
+            (error) => { if (this.active === instance) reject(error) },
+          )
+        }),
     }
   }
 }

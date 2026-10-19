@@ -64,4 +64,56 @@ describe('Engine', () => {
     engine.enter('Unknown') // no registered scene
     expect(engine.scene.children).toHaveLength(0)
   })
+
+  it('onEnter listeners run after the enter hook, with objects already registered', () => {
+    const engine = makeEngine()
+    engine.registry.register('Home', 'home', {
+      enter: (ctx) => { ctx.register('box', new Mesh(new BoxGeometry(), new MeshBasicMaterial())) },
+    })
+    const seen: unknown[] = []
+    engine.onEnter('Home', (ctx) => seen.push(ctx.get('box')))
+    engine.onEnter('About', () => seen.push('wrong scene'))
+
+    engine.enter('Home')
+    expect(seen).toHaveLength(1)
+    expect(seen[0]).toBeInstanceOf(Mesh)
+  })
+
+  it('onEnter fires immediately for an already-active scene, and unsubscribes', () => {
+    const engine = makeEngine()
+    engine.registry.register('Home', 'home', { enter() {} })
+    engine.enter('Home')
+
+    const listener = vi.fn()
+    const off = engine.onEnter('Home', listener)
+    expect(listener).toHaveBeenCalledOnce()
+
+    off()
+    engine.enter('Home')
+    expect(listener).toHaveBeenCalledOnce()
+  })
+
+  it('ctx.load resolves while the scene is active and stays pending once it is left', async () => {
+    const engine = makeEngine()
+    let release!: (v: string) => void
+    const slow = { loadAsync: () => new Promise<string>((r) => { release = r }) }
+    const fast = { loadAsync: async (url: string) => url }
+    let pending: Promise<string> | undefined
+    let ready: Promise<string> | undefined
+    engine.registry.register('Home', 'home', {
+      enter(ctx) {
+        pending = ctx.load(slow, '/slow.glb')
+        ready = ctx.load(fast, '/fast.png')
+      },
+    })
+    engine.registry.register('About', 'about', { enter() {} })
+
+    engine.enter('Home')
+    await expect(ready).resolves.toBe('/fast.png')
+
+    engine.enter('About')
+    release('/slow.glb')
+    const settled = await Promise.race([pending!.then(() => true), new Promise((r) => setTimeout(() => r(false), 20))])
+    expect(settled).toBe(false)
+  })
 })

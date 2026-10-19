@@ -1,6 +1,9 @@
 import type {
   Scene, Group, PerspectiveCamera, WebGLRenderer, Clock, Object3D, WebGLRendererParameters,
 } from 'three'
+import type { MaybeRefOrGetter } from 'vue'
+import type { gsap } from 'gsap'
+import type { AssetLoaderSource } from './assets/assets'
 
 /**
  * Handle returned by {@link SceneContext.fadeIn}/{@link SceneContext.fadeOut}.
@@ -31,6 +34,28 @@ export interface SceneContext {
   get<T extends Object3D = Object3D>(name: string): T | undefined
   fadeIn(name: string, opts?: { duration?: number }): DioramaTween
   fadeOut(name: string, opts?: { duration?: number }): DioramaTween
+  /**
+   * Cached {@link loadAsset}, scoped to this scene: the promise only settles while the
+   * scene is still the active one, so a slow load never lands in a scene you left.
+   */
+  load<T>(loader: AssetLoaderSource<T>, url: string): Promise<T>
+}
+
+/** The GSAP timeline handed to a {@link useScrollChoreography} builder. */
+export type DioramaTimeline = ReturnType<typeof gsap.timeline>
+
+export interface ScrollChoreographyOptions {
+  /**
+   * Element (or selector) whose scroll range drives the timeline. Read when the
+   * scene enters, so a template ref works. Default: the whole document.
+   */
+  trigger?: MaybeRefOrGetter<Element | string | null | undefined>
+  /** ScrollTrigger start. Default `'top top'`. */
+  start?: string | number
+  /** ScrollTrigger end. Default `'bottom bottom'`. */
+  end?: string | number
+  /** `true` locks the timeline to the scrollbar; a number smooths it over that many seconds. Default `true`. */
+  scrub?: boolean | number
 }
 
 export interface SceneHooks {
