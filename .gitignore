@@ -12,6 +12,9 @@ playground/storage/*.key
 playground/bootstrap/ssr/
 playground/public/hot
 
+# Copied from the root llms.txt at pack time (prepack)
+packages/diorama/llms.txt
+
 # Playwright
 /test-results/
 /playwright-report/

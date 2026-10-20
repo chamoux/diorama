@@ -226,3 +226,65 @@ test('a slow asset never lands in a scene you already left', async ({ page }) =>
   expect(await sawGlobe).toBe(false)
   await expect.poll(() => page.evaluate(() => (window as unknown as { __diorama: { scene: { children: unknown[] } } }).__diorama.scene.children.length), { timeout: 6_000 }).toBe(1)
 })
+
+// --- Leave hooks + canvas remount ------------------------------------------------------
+
+type RouterHandle = {
+  reload(o: { onFinish: () => void }): void
+  prefetch(url: string, o: object, p: { cacheFor: number }): void
+}
+
+/** Count engine.leave() calls from here on (the router calls it on the engine instance). */
+const countLeaves = (page: Page) =>
+  page.evaluate(() => {
+    const w = window as unknown as { __diorama: { leave: (c: string) => void }; __leaves: string[] }
+    w.__leaves = []
+    const original = w.__diorama.leave.bind(w.__diorama)
+    w.__diorama.leave = (c: string) => { w.__leaves.push(c); original(c) }
+  })
+const leaves = (page: Page) => page.evaluate(() => (window as unknown as { __leaves: string[] }).__leaves)
+
+test('reloads and prefetches do not run the leave hook; a real visit does', async ({ page }) => {
+  await page.goto('/')
+  await waitEngineReady(page)
+  await countLeaves(page)
+
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        (window as unknown as { __router: RouterHandle }).__router.reload({ onFinish: () => resolve() }),
+      ),
+  )
+  await page.evaluate(() => (window as unknown as { __router: RouterHandle }).__router.prefetch('/about', {}, { cacheFor: 0 }))
+  await page.waitForTimeout(500)
+  expect(await leaves(page)).toEqual([])
+  expect(await boxRotationY(page)).not.toBeNaN() // the Home scene is still there
+
+  await page.getByRole('link', { name: 'About' }).click()
+  await expect(page).toHaveURL(/\/about$/)
+  await expect.poll(() => leaves(page)).toEqual(['Home'])
+})
+
+test('the canvas renders again after visiting a page with a different layout', async ({ page }) => {
+  const errors: string[] = []
+  page.on('console', (m) => m.type() === 'error' && errors.push(m.text()))
+  page.on('pageerror', (e) => errors.push(e.message))
+
+  await page.goto('/about')
+  await waitEngineReady(page)
+  await page.getByRole('link', { name: 'No canvas' }).click()
+  await expect(page).toHaveURL(/\/plain$/)
+  await expect(page.locator('canvas')).toHaveCount(0)
+
+  await page.getByRole('link', { name: 'About' }).click()
+  await expect(page).toHaveURL(/\/about$/)
+  await expect(page.locator('canvas.diorama-canvas')).toBeVisible()
+  await expect.poll(() => objectReady(page, 'globe'), { timeout: 6_000 }).toBe('ready')
+  const bound = await page.evaluate(() => {
+    const d = (window as unknown as { __diorama: { renderer: { domElement: Element } } }).__diorama
+    return d.renderer.domElement === document.querySelector('canvas')
+  })
+  expect(bound).toBe(true)
+  expect(await centreAlpha(page)).toBeGreaterThan(200)
+  expect(errors).toEqual([])
+})

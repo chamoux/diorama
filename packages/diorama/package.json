@@ -1,7 +1,7 @@
 {
   "name": "@chamoux/diorama",
-  "version": "0.1.0",
-  "description": "Persistent WebGL scenes for Inertia + Vue: one Three.js canvas that survives navigation, with per-page scenes and crossfades.",
+  "version": "0.1.1",
+  "description": "Persistent Three.js / WebGL scenes for Inertia + Vue (Laravel): one canvas that survives page navigation, with per-page scenes, crossfade page transitions, scroll-driven GSAP timelines and lazy, cached asset loading. SSR-safe.",
   "type": "module",
   "sideEffects": false,
   "module": "./dist/index.js",
@@ -14,7 +14,8 @@
     "./package.json": "./package.json"
   },
   "files": [
-    "dist"
+    "dist",
+    "llms.txt"
   ],
   "engines": {
     "node": ">=20.19"
@@ -36,6 +37,12 @@
     "scene",
     "scroll",
     "scroll-animation",
+    "scroll-choreography",
+    "page-transitions",
+    "crossfade",
+    "lazy-loading",
+    "gltf",
+    "ssr",
     "spa",
     "3d"
   ],
@@ -50,7 +57,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "vue-tsc --noEmit",
-    "prepack": "npm run build",
+    "prepack": "npm run build && node -e \"require('node:fs').copyFileSync('../../llms.txt', 'llms.txt')\"",
     "prepublishOnly": "npm run build"
   },
   "peerDependencies": {

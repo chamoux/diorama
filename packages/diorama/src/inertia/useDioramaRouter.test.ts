@@ -16,25 +16,36 @@ import { useDioramaRouter } from './useDioramaRouter'
 import { Engine } from '../engine/Engine'
 
 describe('useDioramaRouter', () => {
-  it('leaves on before, enters on success/navigate, and gates same-component visits', () => {
+  it('leaves then enters on success/navigate, and gates same-page visits', () => {
     const engine = new Engine()
-    const leave = vi.spyOn(engine, 'leave').mockImplementation(() => {})
-    const enter = vi.spyOn(engine, 'enter').mockImplementation(() => {})
+    const calls: string[] = []
+    vi.spyOn(engine, 'leave').mockImplementation((c) => { calls.push(`leave:${c}`) })
+    vi.spyOn(engine, 'enter').mockImplementation((c) => { calls.push(`enter:${c}`) })
 
     const unwire = useDioramaRouter(engine)
 
-    handlers.before!()
-    expect(leave).toHaveBeenCalledWith('Home')
-
     handlers.success!({ detail: { page: { component: 'About', url: '/about' } } })
-    expect(enter).toHaveBeenCalledWith('About')
+    expect(calls).toEqual(['leave:Home', 'enter:About'])
 
-    enter.mockClear()
+    calls.length = 0
     handlers.success!({ detail: { page: { component: 'About', url: '/about' } } }) // same -> gated
-    expect(enter).not.toHaveBeenCalled()
+    expect(calls).toEqual([])
 
     handlers.navigate!({ detail: { page: { component: 'Home', url: '/' } } })
-    expect(enter).toHaveBeenCalledWith('Home')
+    expect(calls).toEqual(['leave:About', 'enter:Home'])
+
+    unwire()
+  })
+
+  it('does not listen to `before`: reloads, polls and prefetches must not run leave', () => {
+    const engine = new Engine()
+    const leave = vi.spyOn(engine, 'leave').mockImplementation(() => {})
+    const unwire = useDioramaRouter(engine)
+
+    expect(handlers.before).toBeUndefined()
+    // A reload / poll lands on the same page: no leave.
+    handlers.success!({ detail: { page: { component: 'Home', url: '/' } } })
+    expect(leave).not.toHaveBeenCalled()
 
     unwire()
   })

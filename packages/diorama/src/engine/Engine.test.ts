@@ -43,6 +43,17 @@ describe('Engine', () => {
     expect(engine.scene.children).toHaveLength(1)
   })
 
+  it('leave uses the hooks the scene entered with, even after its page unregistered', () => {
+    const engine = makeEngine()
+    const leave = vi.fn()
+    engine.registry.register('Home', 'home', { enter() {}, leave })
+    engine.enter('Home')
+    engine.registry.deregister('Home') // the page unmounts before the visit lands
+
+    engine.leave('Home')
+    expect(leave).toHaveBeenCalledOnce()
+  })
+
   it('leave runs the leave hook without disposing', () => {
     const engine = makeEngine()
     const leave = vi.fn()

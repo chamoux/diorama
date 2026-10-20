@@ -12,5 +12,6 @@ const preloadWork = () => preloadAsset(GLTFLoader, '/assets/gem.gltf')
     <Link href="/">Home</Link>
     <Link href="/about">About</Link>
     <Link href="/work/alpha" @mouseenter="preloadWork">Work</Link>
+    <Link href="/plain">No canvas</Link>
   </nav>
 </template>

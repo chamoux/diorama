@@ -14,7 +14,6 @@ onMounted(() => {
   if (!canvas) return
 
   engine.init(canvas)
-  engine.start()
   unwire = useDioramaRouter(engine)
   // DioramaCanvas and the slotted page are SIBLINGS in the layout, and the canvas
   // mounts first — so the page's useScene hasn't registered yet at this point. Defer the
@@ -32,12 +31,12 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  // Stop the loop + unwire listeners, but intentionally do NOT engine.dispose():
-  // the canvas is meant to persist for the app's lifetime, and a remount should
-  // reuse the same renderer/GPU context. Full teardown is left to engine.dispose().
+  // Stop the loop + unwire listeners, but intentionally do NOT engine.dispose(): the
+  // scenes outlive the canvas (e.g. a page with another layout), and a remount rebinds
+  // a renderer to the new <canvas> in init(). Full teardown is left to engine.dispose().
   observer?.disconnect()
   unwire?.()
-  engine.stop()
+  engine.detach()
 })
 </script>
 

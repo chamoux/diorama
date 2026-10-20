@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
+import { router } from '@inertiajs/vue3'
 import { DioramaCanvas, useEngine } from '@chamoux/diorama'
 
-// Sandbox hook: expose the engine for E2E assertions (and future devtools).
+// Sandbox hooks: expose the engine and router for E2E assertions (and future devtools).
 const engine = useEngine()
-onMounted(() => { (window as unknown as { __diorama: unknown }).__diorama = engine })
+onMounted(() => {
+  Object.assign(window, { __diorama: engine, __router: router })
+})
 </script>
 
 <template>

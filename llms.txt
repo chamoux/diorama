@@ -22,7 +22,7 @@ Peer deps: `vue` ^3.4, `three` >=0.160, `gsap` ^3.12, and (optional) `@inertiajs
 
 - `createDiorama(options?)` — Vue plugin; creates the shared renderer/scene/camera.
 - `DioramaCanvas` — the single persistent `<canvas>` component; place it in a persistent Inertia layout (e.g. `class="fixed inset-0"`).
-- `useScene(name, hooks)` — register `{ enter(ctx), leave(ctx) }` for the current page. The scene is keyed by the Inertia page component; `name` is a display label.
+- `useScene(name, hooks)` — register `{ enter(ctx), leave(ctx) }` for the current page. The scene is keyed by the Inertia page component; `name` is a display label. `leave` runs when a visit lands on a different page (not on reloads, polls or prefetches).
 - `ctx` (SceneContext) — `{ scene, camera, renderer, clock, register(name, obj), get(name), fadeIn(name, opts), fadeOut(name, opts), load(loader, url) }`.
 - `useScrollChoreography((tl, ctx) => { ... }, { trigger?, start?, end?, scrub? })` — call next to `useScene`; builds a scrubbed GSAP ScrollTrigger timeline each time the page's scene enters; killed on page unmount.
 - `ctx.load(Loader, url)` — lazy, session-cached asset load (any three.js loader, e.g. `TextureLoader`, `GLTFLoader`); resolves only while the scene is still active. Clone cached glTF scenes before registering.

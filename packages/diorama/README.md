@@ -97,7 +97,12 @@ useScene('home', {
 ```
 
 On navigation, Diorama runs the outgoing scene's `leave`, the incoming scene's
-`enter`, and crossfades between them — the canvas never remounts.
+`enter`, and crossfades between them — the canvas never remounts. `leave` runs once a
+visit lands on a different page; reloads, polls, prefetches and cancelled visits don't
+trigger it.
+
+Pages may use other layouts without the canvas: it unmounts there, the scenes are kept,
+and it picks up again when you come back.
 
 ## Scroll choreography
 

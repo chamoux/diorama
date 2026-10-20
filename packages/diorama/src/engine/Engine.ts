@@ -2,7 +2,7 @@ import { Scene, PerspectiveCamera, Clock, Group, WebGLRenderer } from 'three'
 import type { Object3D } from 'three'
 import { markRaw } from 'vue'
 import { gsap } from 'gsap'
-import type { DioramaOptions, SceneContext, SceneInstance } from '../types'
+import type { DioramaOptions, SceneContext, SceneHooks, SceneInstance } from '../types'
 import { SceneRegistry } from './SceneRegistry'
 import { TransitionController, type TweenFn } from './TransitionController'
 import { createLoop, type Loop } from './loop'
@@ -26,6 +26,8 @@ export class Engine {
   private readonly transitions: TransitionController
   private loop: Loop | null = null
   private active: SceneInstance | null = null
+  /** Hooks the active scene entered with; its page may have unregistered by the time it leaves. */
+  private activeHooks: SceneHooks | null = null
   private readonly enterListeners = new Map<string, Set<(ctx: SceneContext) => void>>()
 
   constructor(options: DioramaOptions = {}, deps: EngineDeps = {}) {
@@ -50,13 +52,32 @@ export class Engine {
   }
 
   init(canvas: HTMLCanvasElement): void {
-    if (this.isInitialized || typeof window === 'undefined') return
-    this.renderer = markRaw(new WebGLRenderer({ canvas, ...this.options.renderer }))
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.dprCap))
-    // Prevent the default so the GPU context can be restored after a loss.
-    canvas.addEventListener('webglcontextlost', (e) => e.preventDefault(), false)
-    this.loop = createLoop((delta) => this.tick(delta))
+    if (typeof window === 'undefined') return
+    if (this.renderer?.domElement !== canvas) {
+      // A remounted DioramaCanvas (e.g. after a page with another layout) brings a new
+      // <canvas>; the old renderer is bound to the detached one, so replace it. Scene
+      // objects survive and re-upload to the new context on the next frame.
+      if (this.renderer) {
+        this.renderer.dispose()
+        this.renderer.forceContextLoss()
+      }
+      this.renderer = markRaw(new WebGLRenderer({ canvas, ...this.options.renderer }))
+      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.dprCap))
+      // Prevent the default so the GPU context can be restored after a loss.
+      canvas.addEventListener('webglcontextlost', (e) => e.preventDefault(), false)
+    }
+    this.loop ??= createLoop((delta) => this.tick(delta))
     this.start()
+  }
+
+  /**
+   * Stop rendering until the next {@link init}, for when the canvas unmounts. Unlike
+   * {@link stop}, a tab becoming visible again won't restart the loop. Scenes and the
+   * renderer are kept.
+   */
+  detach(): void {
+    this.loop?.dispose()
+    this.loop = null
   }
 
   private tick(_delta: number): void {
@@ -84,6 +105,7 @@ export class Engine {
       if (this.active) {
         const outgoing = this.active
         this.active = null
+        this.activeHooks = null
         this.transitions.fadeOutAlone(outgoing)
       }
       return
@@ -97,6 +119,7 @@ export class Engine {
     setGroupOpacity(group, 0)
     const prev = this.active
     this.active = instance
+    this.activeHooks = reg.hooks
     this.transitions.crossfade(prev, instance)
   }
 
@@ -123,8 +146,7 @@ export class Engine {
 
   leave(component: string): void {
     if (!this.active || this.active.component !== component) return
-    const reg = this.registry.get(component)
-    reg?.hooks.leave?.(this.buildContext(this.active))
+    this.activeHooks?.leave?.(this.buildContext(this.active))
   }
 
   dispose(): void {
@@ -134,6 +156,7 @@ export class Engine {
       disposeObject(this.active.group)
       this.active.objects.clear()
       this.active = null
+      this.activeHooks = null
     }
     this.loop?.dispose()
     this.renderer?.dispose()
